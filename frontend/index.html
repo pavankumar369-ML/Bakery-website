@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artisan Bakery & Café</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <navbar>
+        <a href="#" class="brand"><i class="fa-solid fa-bread-slice"></i> Crust & Crumb</a>
+        <div class="nav-actions">
+            <button class="btn btn-outline" id="track-order-btn"><i class="fa-solid fa-truck-fast"></i> Track Order</button>
+            <button class="btn" id="cart-btn"><i class="fa-solid fa-basket-shopping"></i> Cart (<span id="cart-count">0</span>)</button>
+        </div>
+    </navbar>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <h1>Freshly Baked Happiness</h1>
+        <p>Handcrafted artisan breads, flaky pastries, and delectable cakes delivered warm to your doorstep.</p>
+    </header>
+
+    <!-- Category Filters -->
+    <div class="filters">
+        <button class="filter-btn active" data-category="all">All Treats</button>
+        <button class="filter-btn" data-category="bread">Breads</button>
+        <button class="filter-btn" data-category="pastry">Pastries</button>
+        <button class="filter-btn" data-category="cake">Cakes</button>
+    </div>
+
+    <!-- Product Catalog Grid -->
+    <main class="container">
+        <div class="product-grid" id="product-grid">
+            <!-- Dynamically populated via JS -->
+        </div>
+    </main>
+
+    <!-- Cart Drawer Overlay -->
+    <div class="modal-overlay" id="cart-modal">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <h2>Your Basket</h2>
+                <button class="close-btn" id="close-cart">&times;</button>
+            </div>
+            <div class="cart-items" id="cart-items-container">
+                <!-- Cart items rendered here -->
+            </div>
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total-price">$0.00</span>
+            </div>
+            <button class="btn" style="width: 100%; justify-content: center;" id="checkout-btn">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- JavaScript code placeholder -->
+    <script src="js/app.js"></script>
+</body>
+</html>

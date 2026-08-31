@@ -15,6 +15,9 @@ const cartTotalPrice = document.getElementById('cart-total-price');
 const checkoutBtn = document.getElementById('checkout-btn');
 const filterBtns = document.querySelectorAll('.filter-btn');
 const trackOrderBtn = document.getElementById('track-order-btn');
+const checkoutModalOverlay = document.getElementById('checkout-modal');
+const closeCheckoutBtn = document.getElementById('close-checkout');
+const checkoutForm = document.getElementById('checkout-form');
 
 // Initialize Toast Container
 const toastContainer = document.createElement('div');
@@ -44,6 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === cartModal) cartModal.classList.remove('active');
     });
 
+    // Checkout modal listeners
+    closeCheckoutBtn.addEventListener('click', () => checkoutModalOverlay.classList.remove('active'));
+    checkoutModalOverlay.addEventListener('click', (e) => {
+        if (e.target === checkoutModalOverlay) checkoutModalOverlay.classList.remove('active');
+    });
+
+    checkoutForm.addEventListener('submit', submitOrder);
+
     filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             filterBtns.forEach(b => b.classList.remove('active'));
@@ -52,9 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    checkoutBtn.addEventListener('click', handleCheckout);
+    checkoutBtn.addEventListener('click', () => {
+        if (cart.length === 0) {
+            showToast('Your basket is empty!');
+            return;
+        }
+        cartModal.classList.remove('active');
+        checkoutModalOverlay.classList.add('active');
+    });
+
     trackOrderBtn.addEventListener('click', promptTrackOrder);
 });
+
 
 // 1. Fetch Products from Flask API
 async function fetchProducts(category = 'all') {
@@ -232,6 +252,50 @@ async function trackOrderStatus(orderId) {
     } catch (error) {
         console.error('Tracking error:', error);
         showToast('Failed to retrieve order status.');
+    }
+}
+
+async function submitOrder(e) {
+    e.preventDefault();
+    
+    const address = document.getElementById('checkout-address').value.trim();
+    const phone = document.getElementById('checkout-phone').value.trim();
+    const paymentMethod = document.getElementById('payment-method').value;
+
+    if (!address || !phone) {
+        showToast('Please fill in all delivery details.');
+        return;
+    }
+
+    const orderPayload = {
+        user_id: 1,
+        delivery_address: `${address} (Phone: ${phone})`,
+        delivery_time: 'Today in 45 mins',
+        items: cart.map(item => ({ product_id: item.id, quantity: item.quantity }))
+    };
+
+    try {
+        const response = await fetch(`${API_BASE}/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderPayload)
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            showToast(`Payment successful! Order #${data.order_id} placed.`, 'success');
+            cart = [];
+            saveCart();
+            updateCartUI();
+            checkoutModalOverlay.classList.remove('active');
+            checkoutForm.reset();
+            trackOrderStatus(data.order_id);
+        } else {
+            showToast(`Checkout failed: ${data.error}`);
+        }
+    } catch (error) {
+        console.error('Checkout error:', error);
+        showToast('An error occurred during payment processing.');
     }
 }
 

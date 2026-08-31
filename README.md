@@ -1,4 +1,3 @@
-```markdown
 # Crust & Crumb — Artisan Bakery & Café E-Commerce Platform
 
 A modern, full-stack e-commerce web application built for an artisanal bakery and café. Featuring a warm, pastry-inspired UI, responsive product catalog, persistent shopping basket, streamlined checkout modal, and a real-time order tracking lifecycle.
@@ -8,7 +7,7 @@ A modern, full-stack e-commerce web application built for an artisanal bakery an
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 * **Dynamic Product Catalog:** Filter artisanal goods by categories (*Breads*, *Pastries*, *Cakes*) fetched live from the backend database.
 * **Interactive Shopping Basket:** Slide-in drawer with real-time quantity adjustments, price calculations, and persistent state using `localStorage`.
@@ -19,8 +18,6 @@ A modern, full-stack e-commerce web application built for an artisanal bakery an
 ---
 
 ## 📂 Architecture & Folder Structure
-
-```text
 bakery-website/
 │
 ├── backend/
@@ -46,7 +43,7 @@ bakery-website/
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * **Frontend:** HTML5, CSS3 (Flexbox, custom CSS variables, glassmorphism), Vanilla JavaScript (Modular state management, Fetch API).
 * **Backend:** Python, Flask, Flask-SQLAlchemy (ORM), Flask-CORS.
@@ -54,7 +51,7 @@ bakery-website/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 

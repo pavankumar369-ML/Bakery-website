@@ -72,7 +72,40 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutModalOverlay.classList.add('active');
     });
 
-    trackOrderBtn.addEventListener('click', promptTrackOrder);
+    // Track Order Modal Listeners
+    const trackModal = document.getElementById('track-modal');
+    const closeTrackBtn = document.getElementById('close-track-modal');
+    const trackSubmitBtn = document.getElementById('track-submit-btn');
+
+    if (trackOrderBtn) {
+        trackOrderBtn.addEventListener('click', () => {
+            trackModal.style.display = 'flex';
+            renderOrderHistory();
+        });
+    }
+
+    if (closeTrackBtn) {
+        closeTrackBtn.addEventListener('click', () => {
+            trackModal.style.display = 'none';
+        });
+    }
+
+    if (trackModal) {
+        trackModal.addEventListener('click', (e) => {
+            if (e.target === trackModal) trackModal.style.display = 'none';
+        });
+    }
+
+    if (trackSubmitBtn) {
+        trackSubmitBtn.addEventListener('click', () => {
+            const orderId = document.getElementById('track-order-input').value;
+            if (orderId) {
+                fetchAndDisplayOrder(orderId);
+            } else {
+                showToast('Please enter a valid Order ID.');
+            }
+        });
+    }
 });
 
 
@@ -191,70 +224,7 @@ function updateCartUI() {
     cartTotalPrice.textContent = `$${total.toFixed(2)}`;
 }
 
-// 3. Checkout Submission
-async function handleCheckout() {
-    if (cart.length === 0) {
-        showToast('Your basket is empty!');
-        return;
-    }
-
-    const address = prompt('Enter your delivery address:', '123 Sweet Tooth Lane');
-    if (!address) return;
-
-    const orderPayload = {
-        user_id: 1,
-        delivery_address: address,
-        delivery_time: 'Today in 45 mins',
-        items: cart.map(item => ({ product_id: item.id, quantity: item.quantity }))
-    };
-
-    try {
-        const response = await fetch(`${API_BASE}/checkout`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderPayload)
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            showToast(`Order #${data.order_id} placed successfully!`, 'success');
-            cart = [];
-            saveCart();
-            updateCartUI();
-            cartModal.classList.remove('active');
-            trackOrderStatus(data.order_id);
-        } else {
-            showToast(`Checkout failed: ${data.error}`);
-        }
-    } catch (error) {
-        console.error('Checkout error:', error);
-        showToast('An error occurred during checkout.');
-    }
-}
-
-// 4. Order Status Tracker View
-function promptTrackOrder() {
-    const orderId = prompt('Enter your Order ID to track:');
-    if (orderId) {
-        trackOrderStatus(orderId);
-    }
-}
-
-async function trackOrderStatus(orderId) {
-    try {
-        const response = await fetch(`${API_BASE}/orders/${orderId}`);
-        if (!response.ok) {
-            showToast('Order not found!');
-            return;
-        }
-        const order = await response.json();
-        showTrackerModal(order);
-    } catch (error) {
-        console.error('Tracking error:', error);
-        showToast('Failed to retrieve order status.');
-    }
-}
-
+// 3. Checkout Submission & Order History Storage
 async function submitOrder(e) {
     e.preventDefault();
     
@@ -284,12 +254,20 @@ async function submitOrder(e) {
         const data = await response.json();
         if (response.ok) {
             showToast(`Payment successful! Order #${data.order_id} placed.`, 'success');
+            
+            // Save order ID to local history
+            saveOrderToHistory(data.order_id);
+
             cart = [];
             saveCart();
             updateCartUI();
             checkoutModalOverlay.classList.remove('active');
             checkoutForm.reset();
-            trackOrderStatus(data.order_id);
+            
+            // Open tracking modal and display new order
+            document.getElementById('track-modal').style.display = 'flex';
+            fetchAndDisplayOrder(data.order_id);
+            renderOrderHistory();
         } else {
             showToast(`Checkout failed: ${data.error}`);
         }
@@ -299,39 +277,61 @@ async function submitOrder(e) {
     }
 }
 
-function showTrackerModal(order) {
-    const existingModal = document.getElementById('tracker-modal');
-    if (existingModal) existingModal.remove();
+// 4. Order History & Tracking Functions
+function saveOrderToHistory(orderId) {
+    let history = JSON.parse(localStorage.getItem('bakery_order_history') || '[]');
+    if (!history.includes(orderId)) {
+        history.unshift(orderId);
+        localStorage.setItem('bakery_order_history', JSON.stringify(history));
+    }
+}
 
-    const statuses = ['Order Received', 'Baking / Preparing', 'Out for Delivery', 'Delivered'];
-    const currentIdx = statuses.indexOf(order.status);
+function renderOrderHistory() {
+    const listContainer = document.getElementById('order-history-list');
+    const history = JSON.parse(localStorage.getItem('bakery_order_history') || '[]');
+    
+    if (!listContainer) return;
 
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay active';
-    modal.id = 'tracker-modal';
-    modal.innerHTML = `
-        <div class="cart-drawer" style="max-width: 450px;">
-            <div class="cart-header">
-                <h2>Order Tracker #${order.order_id}</h2>
-                <button class="close-btn" onclick="document.getElementById('tracker-modal').remove()">&times;</button>
-            </div>
-            <p style="margin-bottom: 1.5rem; color: var(--color-muted); font-size: 0.95rem;">Delivery Address: <strong>${order.delivery_address}</strong></p>
-            <div style="margin: 1.5rem 0; display: flex; flex-direction: column; gap: 1.2rem; background: #FAF7F2; padding: 1.5rem; border-radius: var(--radius-md);">
-                ${statuses.map((st, idx) => `
-                    <div style="display: flex; align-items: center; gap: 1rem; opacity: ${idx <= currentIdx ? '1' : '0.4'}">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: ${idx <= currentIdx ? 'var(--color-success)' : '#ccc'}; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <i class="fa-solid ${idx <= currentIdx ? 'fa-check' : 'fa-clock'}"></i>
-                        </div>
-                        <span style="font-weight: ${idx === currentIdx ? '700' : '500'}; color: var(--color-primary);">${st}</span>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="cart-total">
-                <span>Total Paid:</span>
-                <span>$${order.total_amount.toFixed(2)}</span>
-            </div>
-            <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="document.getElementById('tracker-modal').remove()">Close Tracker</button>
+    if (history.length === 0) {
+        listContainer.innerHTML = `<p class="empty-history" style="color: #8c7a6b; font-style: italic;">No recent orders found on this device.</p>`;
+        return;
+    }
+
+    listContainer.innerHTML = history.map(id => `
+        <div class="history-item">
+            <span>Order #${id}</span>
+            <button onclick="fetchAndDisplayOrder(${id})">View Progress</button>
         </div>
-    `;
-    document.body.appendChild(modal);
+    `).join('');
+}
+
+async function fetchAndDisplayOrder(orderId) {
+    try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}`);
+        if (!response.ok) {
+            showToast('Order not found!');
+            return;
+        }
+        const order = await response.json();
+
+        document.getElementById('res-order-id').innerText = order.order_id;
+        document.getElementById('res-order-status').innerText = order.status;
+        document.getElementById('track-result-container').style.display = 'block';
+
+        // Update progress bar steps
+        const steps = ['Order Received', 'Baking / Preparing', 'Out for Delivery', 'Delivered'];
+        const currentStatusIndex = steps.indexOf(order.status);
+
+        document.querySelectorAll('.progress-step').forEach((stepEl, idx) => {
+            stepEl.classList.remove('active', 'completed');
+            if (idx < currentStatusIndex) {
+                stepEl.classList.add('completed');
+            } else if (idx === currentStatusIndex) {
+                stepEl.classList.add('active');
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching order:', err);
+        showToast('Failed to retrieve order status.');
+    }
 }

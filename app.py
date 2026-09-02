@@ -3,7 +3,7 @@ from flask_cors import CORS
 from models import db, Product
 from routes.products import products_bp
 from routes.orders import orders_bp
-
+from routes.auth import auth_bp
 def create_app():
     app = Flask(__name__)
     CORS(app)
@@ -16,6 +16,7 @@ def create_app():
     db.init_app(app)
 
     # Register Blueprints
+    app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(orders_bp)
 

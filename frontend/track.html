@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Tracker — Crust & Crumb</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background-color: var(--color-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-height: 100vh; display: flex; flex-direction: column;">
+
+    <!-- Navbar -->
+    <header style="background: var(--color-surface); padding: 1.2rem 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;">
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 0.8rem;">
+            <span style="font-size: 1.8rem;">🍞</span>
+            <h1 style="font-size: 1.5rem; color: var(--color-primary); font-family: serif;">Crust & Crumb</h1>
+        </a>
+        <a href="index.html" class="btn btn-outline" style="padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; color: var(--color-primary); border-color: var(--color-primary);"><i class="fa-solid fa-arrow-left"></i> Back to Shop</a>
+    </header>
+
+    <!-- Main Content Container -->
+    <main style="flex: 1; max-width: 700px; width: 100%; margin: 3rem auto; padding: 0 1.5rem;">
+        
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+            <h2 style="font-size: 2.2rem; color: var(--color-primary); font-family: serif; margin-bottom: 0.5rem;">Track Your Order</h2>
+            <p style="color: var(--color-muted);">Enter your order ID below or select from your recent history to follow your freshly baked goods in real-time.</p>
+        </div>
+
+        <!-- Search Bar Card -->
+        <div style="background: var(--color-surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 2rem; border: 1px solid var(--color-border);">
+            <div style="display: flex; gap: 1rem;">
+                <input type="number" id="track-order-input" placeholder="e.g. 3" style="flex: 1; padding: 0.9rem 1.2rem; border: 2px solid var(--color-border); border-radius: var(--radius-md); font-size: 1.1rem; outline: none; background: #fffdf9; color: var(--color-primary);" />
+                <button id="track-submit-btn" class="btn" style="padding: 0 2rem; font-size: 1rem; background: var(--color-accent); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(188, 108, 37, 0.3);">Track</button>
+            </div>
+        </div>
+
+        <!-- Order Result & Progress Card (Hidden initially) -->
+        <div id="track-result-container" style="display: none; background: var(--color-surface); padding: 2.5rem; border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 2rem; border: 1px solid var(--color-border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-border); padding-bottom: 1rem; margin-bottom: 2rem;">
+                <div>
+                    <span style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-muted);">Order Reference</span>
+                    <h3 style="font-size: 1.6rem; color: var(--color-primary); font-family: serif;">Order #<span id="res-order-id"></span></h3>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-muted);">Current Status</span>
+                    <p style="font-size: 1.1rem; font-weight: 700; color: var(--color-accent); margin-top: 0.2rem;" id="res-order-status"></p>
+                </div>
+            </div>
+
+            <!-- Vibrant Progress Bar -->
+            <div class="progress-bar-container" style="display: flex; justify-content: space-between; position: relative; margin: 2rem 1rem;">
+                <div class="progress-step" data-step="Order Received">
+                    <div class="step-circle"><i class="fa-solid fa-receipt"></i></div>
+                    <span>Received</span>
+                </div>
+                <div class="progress-step" data-step="Baking / Preparing">
+                    <div class="step-circle"><i class="fa-solid fa-fire-burner"></i></div>
+                    <span>Baking</span>
+                </div>
+                <div class="progress-step" data-step="Out for Delivery">
+                    <div class="step-circle"><i class="fa-solid fa-motorcycle"></i></div>
+                    <span>Out for Delivery</span>
+                </div>
+                <div class="progress-step" data-step="Delivered">
+                    <div class="step-circle"><i class="fa-solid fa-house-chimney"></i></div>
+                    <span>Delivered</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Order History Section -->
+        <div style="background: var(--color-surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--color-border);">
+            <h3 style="font-size: 1.2rem; color: var(--color-primary); margin-bottom: 1.2rem; font-family: serif; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--color-accent);"></i> Recent Orders on this Device</h3>
+            <div id="order-history-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <p style="color: var(--color-muted); font-style: italic;">No recent orders recorded yet.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 1.5rem; color: var(--color-muted); font-size: 0.9rem; border-top: 1px solid var(--color-border); background: var(--color-surface);">
+        &copy; 2026 Crust & Crumb Artisan Bakery. All rights reserved.
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="js/track.js"></script>
+</body>
+</html>

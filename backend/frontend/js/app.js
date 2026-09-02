@@ -14,6 +14,7 @@ const cartItemsContainer = document.getElementById('cart-items-container');
 const cartTotalPrice = document.getElementById('cart-total-price');
 const checkoutBtn = document.getElementById('checkout-btn');
 const filterBtns = document.querySelectorAll('.filter-btn');
+const trackOrderBtn = document.getElementById('track-order-btn');
 const checkoutModalOverlay = document.getElementById('checkout-modal');
 const closeCheckoutBtn = document.getElementById('close-checkout');
 const checkoutForm = document.getElementById('checkout-form');
@@ -70,7 +71,43 @@ document.addEventListener('DOMContentLoaded', () => {
         cartModal.classList.remove('active');
         checkoutModalOverlay.classList.add('active');
     });
+
+    // Track Order Modal Listeners
+    const trackModal = document.getElementById('track-modal');
+    const closeTrackBtn = document.getElementById('close-track-modal');
+    const trackSubmitBtn = document.getElementById('track-submit-btn');
+
+    if (trackOrderBtn) {
+        trackOrderBtn.addEventListener('click', () => {
+            trackModal.style.display = 'flex';
+            renderOrderHistory();
+        });
+    }
+
+    if (closeTrackBtn) {
+        closeTrackBtn.addEventListener('click', () => {
+            trackModal.style.display = 'none';
+        });
+    }
+
+    if (trackModal) {
+        trackModal.addEventListener('click', (e) => {
+            if (e.target === trackModal) trackModal.style.display = 'none';
+        });
+    }
+
+    if (trackSubmitBtn) {
+        trackSubmitBtn.addEventListener('click', () => {
+            const orderId = document.getElementById('track-order-input').value;
+            if (orderId) {
+                fetchAndDisplayOrder(orderId);
+            } else {
+                showToast('Please enter a valid Order ID.');
+            }
+        });
+    }
 });
+
 
 // 1. Fetch Products from Flask API
 async function fetchProducts(category = 'all') {
@@ -187,12 +224,13 @@ function updateCartUI() {
     cartTotalPrice.textContent = `$${total.toFixed(2)}`;
 }
 
-// 3. Checkout Submission & Redirection to Tracking Page
+// 3. Checkout Submission & Order History Storage
 async function submitOrder(e) {
     e.preventDefault();
     
     const address = document.getElementById('checkout-address').value.trim();
     const phone = document.getElementById('checkout-phone').value.trim();
+    const paymentMethod = document.getElementById('payment-method').value;
 
     if (!address || !phone) {
         showToast('Please fill in all delivery details.');
@@ -217,7 +255,7 @@ async function submitOrder(e) {
         if (response.ok) {
             showToast(`Payment successful! Order #${data.order_id} placed.`, 'success');
             
-            // Save order ID to local storage history
+            // Save order ID to local history
             saveOrderToHistory(data.order_id);
 
             cart = [];
@@ -226,10 +264,10 @@ async function submitOrder(e) {
             checkoutModalOverlay.classList.remove('active');
             checkoutForm.reset();
             
-            // Redirect to dedicated tracking page
-            setTimeout(() => {
-                window.location.href = `track.html?id=${data.order_id}`;
-            }, 1000);
+            // Open tracking modal and display new order
+            document.getElementById('track-modal').style.display = 'flex';
+            fetchAndDisplayOrder(data.order_id);
+            renderOrderHistory();
         } else {
             showToast(`Checkout failed: ${data.error}`);
         }
@@ -239,6 +277,7 @@ async function submitOrder(e) {
     }
 }
 
+// 4. Order History & Tracking Functions
 function saveOrderToHistory(orderId) {
     let history = JSON.parse(localStorage.getItem('bakery_order_history') || '[]');
     if (!history.includes(orderId)) {
@@ -247,28 +286,52 @@ function saveOrderToHistory(orderId) {
     }
 }
 
+function renderOrderHistory() {
+    const listContainer = document.getElementById('order-history-list');
+    const history = JSON.parse(localStorage.getItem('bakery_order_history') || '[]');
+    
+    if (!listContainer) return;
 
-// Add these event listeners inside your DOMContentLoaded initializer or globally:
-document.addEventListener('DOMContentLoaded', () => {
-    // ... existing initialization code ...
+    if (history.length === 0) {
+        listContainer.innerHTML = `<p class="empty-history" style="color: #8c7a6b; font-style: italic;">No recent orders found on this device.</p>`;
+        return;
+    }
 
-    // Toggle UPI QR Code view based on payment method selection
-    const paymentMethodSelect = document.getElementById('payment-method');
-    const upiQrContainer = document.getElementById('upi-qr-container');
-    const upiQrImg = document.getElementById('upi-qr-img');
+    listContainer.innerHTML = history.map(id => `
+        <div class="history-item">
+            <span>Order #${id}</span>
+            <button onclick="fetchAndDisplayOrder(${id})">View Progress</button>
+        </div>
+    `).join('');
+}
 
-    if (paymentMethodSelect) {
-        paymentMethodSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'upi') {
-                upiQrContainer.style.display = 'block';
-                // Calculate total amount from cart to encode into simulated UPI QR code URL
-                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const upiString = `upi://pay?pa=crustandcrumb@upi&pn=CrustAndCrumb&am=${total.toFixed(2)}&cu=USD`;
-                // Generate QR code image using a reliable public QR API
-                upiQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiString)}`;
-            } else {
-                upiQrContainer.style.display = 'none';
+async function fetchAndDisplayOrder(orderId) {
+    try {
+        const response = await fetch(`${API_BASE}/orders/${orderId}`);
+        if (!response.ok) {
+            showToast('Order not found!');
+            return;
+        }
+        const order = await response.json();
+
+        document.getElementById('res-order-id').innerText = order.order_id;
+        document.getElementById('res-order-status').innerText = order.status;
+        document.getElementById('track-result-container').style.display = 'block';
+
+        // Update progress bar steps
+        const steps = ['Order Received', 'Baking / Preparing', 'Out for Delivery', 'Delivered'];
+        const currentStatusIndex = steps.indexOf(order.status);
+
+        document.querySelectorAll('.progress-step').forEach((stepEl, idx) => {
+            stepEl.classList.remove('active', 'completed');
+            if (idx < currentStatusIndex) {
+                stepEl.classList.add('completed');
+            } else if (idx === currentStatusIndex) {
+                stepEl.classList.add('active');
             }
         });
+    } catch (err) {
+        console.error('Error fetching order:', err);
+        showToast('Failed to retrieve order status.');
     }
-});
+}

@@ -17,7 +17,7 @@
     <navbar>
         <a href="#" class="brand"><i class="fa-solid fa-bread-slice"></i> Crust & Crumb</a>
         <div class="nav-actions">
-            <a href="track.html" class="btn btn-outline" id="track-order-btn"><i class="fa-solid fa-truck-fast"></i> Track Order</a>
+            <button class="btn btn-outline" id="track-order-btn"><i class="fa-solid fa-truck-fast"></i> Track Order</button>
             <button class="btn" id="cart-btn"><i class="fa-solid fa-basket-shopping"></i> Cart (<span id="cart-count">0</span>)</button>
         </div>
     </navbar>
@@ -60,8 +60,6 @@
             <button class="btn" style="width: 100%; justify-content: center;" id="checkout-btn">Proceed to Checkout</button>
         </div>
     </div>
-
-    <!-- Checkout Modal -->
     <!-- Checkout Modal -->
     <div class="modal-overlay" id="checkout-modal">
         <div class="checkout-card">
@@ -83,18 +81,8 @@
                     <select id="payment-method">
                         <option value="card">Credit / Debit Card (Simulated)</option>
                         <option value="cash">Cash on Delivery</option>
-                        <option value="upi">UPI QR Code</option>
                     </select>
                 </div>
-    
-                <!-- UPI QR Code Container (Dynamically toggled) -->
-                <div id="upi-qr-container" style="display: none; text-align: center; margin: 15px 0; background: #fffdf9; padding: 15px; border-radius: 8px; border: 1px dashed #d4a373;">
-                    <p style="font-size: 0.9rem; color: #283618; margin-bottom: 10px; font-weight: 600;">Scan QR Code to Pay via UPI</p>
-                    <!-- Using a clean public placeholder QR code generator API representing UPI -->
-                    <img id="upi-qr-img" src="" alt="UPI QR Code" style="width: 150px; height: 150px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);" />
-                    <p style="font-size: 0.8rem; color: #bc6c25; margin-top: 8px;">UPI ID: crustandcrumb@upi</p>
-                </div>
-    
                 <button type="submit" class="btn" style="width: 100%; justify-content: center; margin-top: 1rem;">
                     <i class="fa-solid fa-lock"></i> Proceed for Payment & Order
                 </button>
@@ -102,8 +90,60 @@
         </div>
     </div>
 
+    <!-- Inside frontend/index.html -->
+    <!-- Order Tracking & History Modal -->
+    <div id="track-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Order Tracking & History</h2>
+                <button class="close-modal" id="close-track-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Search / Enter Order ID -->
+                <div class="track-search-box">
+                    <input type="number" id="track-order-input" placeholder="Enter Order ID (e.g., 1)" />
+                    <button id="track-submit-btn" class="primary-btn">Track Order</button>
+                </div>
+    
+                <!-- Single Order Status & Progress Bar -->
+                <div id="track-result-container" style="display: none;" class="track-result">
+                    <h3>Order #<span id="res-order-id"></span></h3>
+                    <p>Status: <strong id="res-order-status"></strong></p>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-step" data-step="Received">
+                            <div class="step-circle">1</div>
+                            <span>Received</span>
+                        </div>
+                        <div class="progress-step" data-step="Baking">
+                            <div class="step-circle">2</div>
+                            <span>Baking</span>
+                        </div>
+                        <div class="progress-step" data-step="Out for Delivery">
+                            <div class="step-circle">3</div>
+                            <span>Out for Delivery</span>
+                        </div>
+                        <div class="progress-step" data-step="Delivered">
+                            <div class="step-circle">4</div>
+                            <span>Delivered</span>
+                        </div>
+                    </div>
+                </div>
+    
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e7d7c1;" />
+    
+                <!-- Past Order History List -->
+                <div class="order-history-section">
+                    <h3>Your Recent Orders</h3>
+                    <div id="order-history-list">
+                        <p class="empty-history">No recent orders found on this device.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- JavaScript code -->
+    <!-- JavaScript code placeholder -->
     <script src="js/app.js"></script>
 </body>
 </html>
